@@ -59,6 +59,19 @@ void* searchHash(HashTable* ht, const char* key) {
     return NULL;
 }
 
+// Structure for booking information
+typedef struct {
+    char name[MAX_STRING];  // Hotel name or company name
+    char countryName[MAX_STRING];
+    float rating;
+    char userName[MAX_STRING];
+    char bookingDate[MAX_STRING];
+    float budget;
+    int isTourCompany;  // Flag to distinguish between hotel and tour company bookings
+    int tripDays;      // For tour company bookings
+    char accommodation[MAX_STRING];  // For tour company bookings
+} Booking;
+
 // Binary Search Tree for sorted bookings
 typedef struct BookingNode {
     Booking booking;
@@ -138,19 +151,6 @@ typedef struct {
     Place places[10];
     int placeCount;
 } Country;
-
-// Structure for booking information
-typedef struct {
-    char name[MAX_STRING];  // Hotel name or company name
-    char countryName[MAX_STRING];
-    float rating;
-    char userName[MAX_STRING];
-    char bookingDate[MAX_STRING];
-    float budget;
-    int isTourCompany;  // Flag to distinguish between hotel and tour company bookings
-    int tripDays;      // For tour company bookings
-    char accommodation[MAX_STRING];  // For tour company bookings
-} Booking;
 
 // Queue structure for bookings
 typedef struct {
@@ -439,7 +439,7 @@ void bookHotel(BookingQueue* queue, char* hotelName, char* countryName, float ra
 void mainMenu(Country countries[], int countryCount, BookingQueue* queue, TourCompany companies[], int companyCount) {
     int choice;
     while (1) {
-        printf("\n=== Travel Planner ===\n");
+        printf("\n=== Trip Trek ===\n");
         printf("1. Select Country\n");
         printf("2. View My Bookings\n");
         printf("3. See More (Tour Companies)\n");
@@ -552,53 +552,363 @@ int main() {
     Country countries[] = {
         {
             "Japan",
-            2000.0,  // Minimum budget in USD
+            2000.0,
             {
                 {
                     "Tokyo",
                     {
                         {"Tokyo Grand Hotel", 4.5, 300.0},
                         {"Sakura Inn", 4.2, 250.0},
-                        {"Imperial Palace Hotel", 4.8, 400.0}
+                        {"Imperial Palace Hotel", 4.8, 400.0},
+                        {"Mandarin Oriental Tokyo", 4.9, 600.0},
+                        {"Park Hyatt Tokyo", 4.9, 550.0}
                     },
-                    3
+                    5
                 },
                 {
                     "Kyoto",
                     {
                         {"Kyoto Traditional Inn", 4.6, 280.0},
                         {"Bamboo Garden Hotel", 4.3, 220.0},
-                        {"Temple View Resort", 4.7, 350.0}
+                        {"Temple View Resort", 4.7, 350.0},
+                        {"Four Seasons Kyoto", 4.9, 650.0},
+                        {"Ritz-Carlton Kyoto", 4.9, 580.0}
                     },
-                    3
+                    5
+                },
+                {
+                    "Osaka",
+                    {
+                        {"Osaka Castle View", 4.7, 320.0},
+                        {"Dotonbori Hotel", 4.5, 280.0},
+                        {"Universal Studios Resort", 4.6, 350.0},
+                        {"Conrad Osaka", 4.9, 520.0},
+                        {"St. Regis Osaka", 4.9, 550.0}
+                    },
+                    5
                 }
             },
-            2
+            3
+        },
+        {
+            "India",
+            1200.0,
+            {
+                {
+                    "Delhi",
+                    {
+                        {"Taj Palace", 4.8, 280.0},
+                        {"Imperial Heritage", 4.6, 250.0},
+                        {"Lotus Garden Resort", 4.5, 220.0},
+                        {"The Leela Palace", 4.9, 450.0},
+                        {"The Oberoi", 4.9, 420.0}
+                    },
+                    5
+                },
+                {
+                    "Jaipur",
+                    {
+                        {"Rambagh Palace", 4.9, 350.0},
+                        {"Hawa Mahal View", 4.7, 280.0},
+                        {"Pink City Resort", 4.6, 240.0},
+                        {"Taj Lake Palace", 4.9, 500.0},
+                        {"Sujan Rajmahal Palace", 4.9, 480.0}
+                    },
+                    5
+                },
+                {
+                    "Agra",
+                    {
+                        {"Taj View Hotel", 4.8, 320.0},
+                        {"Oberoi Amarvilas", 4.9, 550.0},
+                        {"ITC Mughal", 4.8, 380.0},
+                        {"Courtyard Agra", 4.7, 300.0},
+                        {"Taj Gateway", 4.7, 280.0}
+                    },
+                    5
+                }
+            },
+            3
+        },
+        {
+            "Thailand",
+            1300.0,
+            {
+                {
+                    "Bangkok",
+                    {
+                        {"Mandarin Oriental", 4.8, 320.0},
+                        {"Grand Palace View", 4.7, 280.0},
+                        {"River City Resort", 4.6, 250.0},
+                        {"The Siam", 4.9, 580.0},
+                        {"Four Seasons Bangkok", 4.9, 550.0}
+                    },
+                    5
+                },
+                {
+                    "Phuket",
+                    {
+                        {"Twin Palms", 4.9, 380.0},
+                        {"Beachfront Villa", 4.8, 350.0},
+                        {"Island Paradise Resort", 4.7, 300.0},
+                        {"Trisara", 4.9, 650.0},
+                        {"Amanpuri", 4.9, 800.0}
+                    },
+                    5
+                },
+                {
+                    "Chiang Mai",
+                    {
+                        {"Four Seasons Chiang Mai", 4.9, 600.0},
+                        {"137 Pillars House", 4.8, 450.0},
+                        {"Anantara Chiang Mai", 4.8, 400.0},
+                        {"Dhara Dhevi", 4.9, 550.0},
+                        {"Raya Heritage", 4.8, 380.0}
+                    },
+                    5
+                }
+            },
+            3
+        },
+        {
+            "Greece",
+            1700.0,
+            {
+                {
+                    "Athens",
+                    {
+                        {"Acropolis View", 4.8, 340.0},
+                        {"Parthenon Palace", 4.7, 310.0},
+                        {"Ancient Greek Resort", 4.6, 280.0},
+                        {"Hotel Grande Bretagne", 4.9, 580.0},
+                        {"King George", 4.9, 550.0}
+                    },
+                    5
+                },
+                {
+                    "Santorini",
+                    {
+                        {"Caldera View Villa", 4.9, 450.0},
+                        {"Sunset Oia Resort", 4.8, 420.0},
+                        {"Aegean Paradise", 4.7, 380.0},
+                        {"Katikies Hotel", 4.9, 650.0},
+                        {"Mystique", 4.9, 700.0}
+                    },
+                    5
+                },
+                {
+                    "Mykonos",
+                    {
+                        {"Mykonos Blu", 4.8, 480.0},
+                        {"Cavo Tagoo", 4.9, 600.0},
+                        {"Santa Marina", 4.9, 650.0},
+                        {"Kalesma Mykonos", 4.9, 580.0},
+                        {"Belvedere Hotel", 4.8, 520.0}
+                    },
+                    5
+                }
+            },
+            3
+        },
+        {
+            "Egypt",
+            1400.0,
+            {
+                {
+                    "Cairo",
+                    {
+                        {"Pyramid View Hotel", 4.7, 300.0},
+                        {"Nile Palace", 4.6, 280.0},
+                        {"Pharaoh's Resort", 4.5, 250.0},
+                        {"Four Seasons Nile Plaza", 4.9, 450.0},
+                        {"St. Regis Cairo", 4.9, 480.0}
+                    },
+                    5
+                },
+                {
+                    "Luxor",
+                    {
+                        {"Valley of Kings Resort", 4.8, 320.0},
+                        {"Temple View Hotel", 4.7, 290.0},
+                        {"Ancient Thebes Inn", 4.6, 260.0},
+                        {"Sofitel Winter Palace", 4.9, 400.0},
+                        {"Al Moudira", 4.8, 380.0}
+                    },
+                    5
+                },
+                {
+                    "Sharm El Sheikh",
+                    {
+                        {"Four Seasons Sharm", 4.9, 550.0},
+                        {"Rixos Premium", 4.8, 450.0},
+                        {"Conrad Sharm", 4.8, 420.0},
+                        {"Savoy Sharm", 4.7, 380.0},
+                        {"Hyatt Regency", 4.8, 400.0}
+                    },
+                    5
+                }
+            },
+            3
         },
         {
             "France",
-            1500.0,  // Minimum budget in USD
+            1500.0,
             {
                 {
                     "Paris",
                     {
                         {"Eiffel Tower Hotel", 4.7, 350.0},
                         {"Louvre Palace", 4.5, 300.0},
-                        {"Seine River View", 4.4, 280.0}
+                        {"Seine River View", 4.4, 280.0},
+                        {"Ritz Paris", 4.9, 800.0},
+                        {"Four Seasons George V", 4.9, 750.0}
                     },
-                    3
+                    5
                 },
                 {
                     "Nice",
                     {
                         {"Mediterranean Resort", 4.6, 320.0},
                         {"French Riviera Hotel", 4.3, 250.0},
-                        {"Coastal View Inn", 4.5, 290.0}
+                        {"Coastal View Inn", 4.5, 290.0},
+                        {"Hotel Negresco", 4.9, 450.0},
+                        {"Hyatt Regency Nice", 4.8, 400.0}
                     },
-                    3
+                    5
+                },
+                {
+                    "Provence",
+                    {
+                        {"Château de la Messardière", 4.9, 600.0},
+                        {"Bastide de Gordes", 4.8, 550.0},
+                        {"La Mirande", 4.8, 500.0},
+                        {"Domaine de Fontenille", 4.7, 450.0},
+                        {"Le Couvent des Minimes", 4.8, 480.0}
+                    },
+                    5
                 }
             },
-            2
+            3
+        },
+        {
+            "Italy",
+            1800.0,
+            {
+                {
+                    "Rome",
+                    {
+                        {"Colosseum View Hotel", 4.7, 380.0},
+                        {"Vatican Palace Hotel", 4.6, 350.0},
+                        {"Roman Forum Inn", 4.4, 280.0},
+                        {"Hotel de Russie", 4.9, 650.0},
+                        {"St. Regis Rome", 4.9, 700.0}
+                    },
+                    5
+                },
+                {
+                    "Venice",
+                    {
+                        {"Canal View Resort", 4.8, 420.0},
+                        {"Gondola Palace", 4.5, 320.0},
+                        {"St. Mark's Square Hotel", 4.6, 360.0},
+                        {"Hotel Cipriani", 4.9, 800.0},
+                        {"Bauer Palazzo", 4.9, 750.0}
+                    },
+                    5
+                },
+                {
+                    "Florence",
+                    {
+                        {"Four Seasons Florence", 4.9, 700.0},
+                        {"Villa Cora", 4.8, 600.0},
+                        {"St. Regis Florence", 4.9, 650.0},
+                        {"Portrait Firenze", 4.8, 550.0},
+                        {"Villa San Michele", 4.9, 750.0}
+                    },
+                    5
+                }
+            },
+            3
+        },
+        {
+            "Spain",
+            1600.0,
+            {
+                {
+                    "Barcelona",
+                    {
+                        {"Sagrada Familia Hotel", 4.6, 340.0},
+                        {"Gaudi Palace", 4.5, 310.0},
+                        {"Mediterranean View", 4.4, 290.0},
+                        {"Hotel Arts Barcelona", 4.9, 550.0},
+                        {"Mandarin Oriental Barcelona", 4.9, 600.0}
+                    },
+                    5
+                },
+                {
+                    "Madrid",
+                    {
+                        {"Royal Palace Hotel", 4.7, 360.0},
+                        {"Prado Museum Inn", 4.5, 320.0},
+                        {"Plaza Mayor Resort", 4.6, 330.0},
+                        {"Four Seasons Madrid", 4.9, 650.0},
+                        {"Mandarin Oriental Ritz", 4.9, 600.0}
+                    },
+                    5
+                },
+                {
+                    "Seville",
+                    {
+                        {"Hotel Alfonso XIII", 4.9, 500.0},
+                        {"Corral del Rey", 4.8, 450.0},
+                        {"Eme Catedral", 4.8, 400.0},
+                        {"Las Casas de la Judería", 4.7, 380.0},
+                        {"Gran Meliá Colón", 4.8, 420.0}
+                    },
+                    5
+                }
+            },
+            3
+        },
+        {
+            "USA",
+            2500.0,
+            {
+                {
+                    "New York",
+                    {
+                        {"Manhattan Grand", 4.8, 450.0},
+                        {"Central Park View", 4.6, 380.0},
+                        {"Times Square Hotel", 4.7, 420.0},
+                        {"The Plaza", 4.9, 800.0},
+                        {"Four Seasons New York", 4.9, 900.0}
+                    },
+                    5
+                },
+                {
+                    "Los Angeles",
+                    {
+                        {"Hollywood Star Hotel", 4.7, 400.0},
+                        {"Beverly Hills Resort", 4.8, 480.0},
+                        {"Santa Monica Beach Inn", 4.6, 360.0},
+                        {"Beverly Hills Hotel", 4.9, 750.0},
+                        {"Waldorf Astoria Beverly Hills", 4.9, 800.0}
+                    },
+                    5
+                },
+                {
+                    "Miami",
+                    {
+                        {"Fontainebleau", 4.9, 600.0},
+                        {"Four Seasons Miami", 4.9, 650.0},
+                        {"Faena Hotel", 4.8, 550.0},
+                        {"The Setai", 4.9, 700.0},
+                        {"Mandarin Oriental Miami", 4.9, 650.0}
+                    },
+                    5
+                }
+            },
+            3
         }
     };
 
@@ -631,14 +941,112 @@ int main() {
             6,
             "4-Star Hotels with Breakfast",
             "France"
+        },
+        {
+            "Roman Holiday Tours",
+            2800.0,
+            8,
+            "4-Star Hotels with Italian Breakfast",
+            "Italy"
+        },
+        {
+            "Venice Gondola Tours",
+            2600.0,
+            7,
+            "4-Star Hotels with Canal View",
+            "Italy"
+        },
+        {
+            "Barcelona Experience",
+            2400.0,
+            6,
+            "4-Star Hotels with Tapas Tasting",
+            "Spain"
+        },
+        {
+            "Madrid Cultural Tours",
+            2300.0,
+            7,
+            "4-Star Hotels with Flamenco Show",
+            "Spain"
+        },
+        {
+            "NYC Explorer",
+            3500.0,
+            8,
+            "4-Star Hotels with Broadway Show",
+            "USA"
+        },
+        {
+            "LA Dream Tours",
+            3200.0,
+            7,
+            "4-Star Hotels with Hollywood Tour",
+            "USA"
+        },
+        {
+            "Golden Triangle Tours",
+            1800.0,
+            7,
+            "4-Star Hotels with Cultural Shows",
+            "India"
+        },
+        {
+            "Rajasthan Heritage",
+            2000.0,
+            8,
+            "Palace Hotels with Elephant Safari",
+            "India"
+        },
+        {
+            "Bangkok Explorer",
+            1600.0,
+            6,
+            "4-Star Hotels with Thai Cooking Class",
+            "Thailand"
+        },
+        {
+            "Phuket Paradise",
+            2200.0,
+            7,
+            "Beach Resorts with Island Hopping",
+            "Thailand"
+        },
+        {
+            "Athens Odyssey",
+            2400.0,
+            8,
+            "4-Star Hotels with Greek Mythology Tour",
+            "Greece"
+        },
+        {
+            "Santorini Sunset",
+            2800.0,
+            7,
+            "Cave Hotels with Wine Tasting",
+            "Greece"
+        },
+        {
+            "Nile Explorer",
+            1900.0,
+            8,
+            "4-Star Hotels with Nile Cruise",
+            "Egypt"
+        },
+        {
+            "Pyramid Adventures",
+            2100.0,
+            7,
+            "Desert Resorts with Camel Safari",
+            "Egypt"
         }
     };
 
-    // Insert countries and companies into hash tables
-    for (int i = 0; i < 2; i++) {
+    
+    for (int i = 0; i < 9; i++) {  
         insertHash(&countryHash, countries[i].name, &countries[i]);
     }
-    for (int i = 0; i < 4; i++) {
+    for (int i = 0; i < 18; i++) {  // Updated to 18 companies
         insertHash(&companyHash, companies[i].name, &companies[i]);
     }
 
@@ -647,7 +1055,7 @@ int main() {
     initializeQueue(&bookingQueue);
     BookingNode* bookingBST = NULL;
 
-    mainMenu(countries, 2, &bookingQueue, companies, 4);
+    mainMenu(countries, 9, &bookingQueue, companies, 18);  // Updated counts
 
     return 0;
 } 

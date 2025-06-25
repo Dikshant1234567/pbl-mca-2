@@ -170,6 +170,7 @@ void displayHotels(Place* place);
 int isValidFutureDate(const char* date);
 void bookTourCompany(BookingQueue* queue, TourCompany* company);
 void bookHotel(BookingQueue* queue, char* hotelName, char* countryName, float rating, float minBudget);
+void generateBookingFile(Booking* booking);
 void mainMenu(Country countries[], int countryCount, BookingQueue* queue, TourCompany companies[], int companyCount);
 void displayTourCompanies(TourCompany companies[], int count);
 void displayCompanyDetails(TourCompany* company);
@@ -341,6 +342,135 @@ int isValidFutureDate(const char* date) {
     return 1;
 }
 
+// Function to generate booking confirmation file
+void generateBookingFile(Booking* booking) {
+    char filename[MAX_STRING];
+    char existingFilename[MAX_STRING];
+    time_t t = time(NULL);
+    struct tm* current = localtime(&t);
+    
+    // Create base filename with customer name and budget
+    sprintf(existingFilename, "booking_%s_%.0f.txt", 
+            booking->userName, booking->budget);
+    
+    // Check if file already exists for this customer and budget
+    FILE* existingFile = fopen(existingFilename, "r");
+    if (existingFile != NULL) {
+        fclose(existingFile);
+        
+        // Append to existing file
+        FILE* file = fopen(existingFilename, "a");
+        if (file == NULL) {
+            printf("Error: Could not open existing booking file!\n");
+            return;
+        }
+        
+        // Add separator and new booking
+        fprintf(file, "\n\n==========================================\n");
+        fprintf(file, "           ADDITIONAL BOOKING\n");
+        fprintf(file, "==========================================\n\n");
+        
+        fprintf(file, "Booking Date: %s\n", booking->bookingDate);
+        
+        if (booking->isTourCompany) {
+            fprintf(file, "Tour Company: %s\n", booking->name);
+            fprintf(file, "Destination: %s\n", booking->countryName);
+            fprintf(file, "Trip Duration: %d days\n", booking->tripDays);
+            fprintf(file, "Accommodation: %s\n", booking->accommodation);
+            fprintf(file, "\nTour Package Details:\n");
+            fprintf(file, "- Professional tour guide\n");
+            fprintf(file, "- Transportation included\n");
+            fprintf(file, "- Accommodation as specified\n");
+            fprintf(file, "- Local experiences and activities\n");
+        } else {
+            fprintf(file, "Hotel: %s\n", booking->name);
+            fprintf(file, "Location: %s\n", booking->countryName);
+            fprintf(file, "Hotel Rating: %.1f/5.0\n", booking->rating);
+            fprintf(file, "\nHotel Amenities:\n");
+            fprintf(file, "- Comfortable accommodation\n");
+            fprintf(file, "- Room service available\n");
+            fprintf(file, "- Hotel facilities access\n");
+        }
+        
+        fprintf(file, "\n==========================================\n");
+        fprintf(file, "Additional Booking Reference: %s_%02d%02d%02d%02d%02d%02d\n", 
+                booking->userName,
+                current->tm_year + 1900,
+                current->tm_mon + 1,
+                current->tm_mday,
+                current->tm_hour,
+                current->tm_min,
+                current->tm_sec);
+        fprintf(file, "==========================================\n");
+        
+        fclose(file);
+        printf("\nAdditional booking added to existing file: %s\n", existingFilename);
+        return;
+    }
+    
+    // Create new file with timestamp for first booking
+    sprintf(filename, "booking_%s_%02d%02d%02d_%02d%02d%02d.txt", 
+            booking->userName,
+            current->tm_year + 1900,
+            current->tm_mon + 1,
+            current->tm_mday,
+            current->tm_hour,
+            current->tm_min,
+            current->tm_sec);
+    
+    FILE* file = fopen(filename, "w");
+    if (file == NULL) {
+        printf("Error: Could not create booking file!\n");
+        return;
+    }
+    
+    // Write booking details to file
+    fprintf(file, "==========================================\n");
+    fprintf(file, "           BOOKING CONFIRMATION\n");
+    fprintf(file, "==========================================\n\n");
+    
+    fprintf(file, "Booking Date: %s\n", booking->bookingDate);
+    fprintf(file, "Customer Name: %s\n", booking->userName);
+    fprintf(file, "Budget: $%.2f USD\n\n", booking->budget);
+    
+    if (booking->isTourCompany) {
+        fprintf(file, "Tour Company: %s\n", booking->name);
+        fprintf(file, "Destination: %s\n", booking->countryName);
+        fprintf(file, "Trip Duration: %d days\n", booking->tripDays);
+        fprintf(file, "Accommodation: %s\n", booking->accommodation);
+        fprintf(file, "\nTour Package Details:\n");
+        fprintf(file, "- Professional tour guide\n");
+        fprintf(file, "- Transportation included\n");
+        fprintf(file, "- Accommodation as specified\n");
+        fprintf(file, "- Local experiences and activities\n");
+    } else {
+        fprintf(file, "Hotel: %s\n", booking->name);
+        fprintf(file, "Location: %s\n", booking->countryName);
+        fprintf(file, "Hotel Rating: %.1f/5.0\n", booking->rating);
+        fprintf(file, "\nHotel Amenities:\n");
+        fprintf(file, "- Comfortable accommodation\n");
+        fprintf(file, "- Room service available\n");
+        fprintf(file, "- Hotel facilities access\n");
+    }
+    
+    fprintf(file, "\n==========================================\n");
+    fprintf(file, "Booking Reference: %s_%02d%02d%02d%02d%02d%02d\n", 
+            booking->userName,
+            current->tm_year + 1900,
+            current->tm_mon + 1,
+            current->tm_mday,
+            current->tm_hour,
+            current->tm_min,
+            current->tm_sec);
+    fprintf(file, "==========================================\n\n");
+    
+    fprintf(file, "Thank you for choosing Trip Trek!\n");
+    fprintf(file, "For any queries, please contact our support.\n");
+    
+    fclose(file);
+    printf("\nBooking confirmation file generated: %s\n", filename);
+}
+
 // Book a tour company
 void bookTourCompany(BookingQueue* queue, TourCompany* company) {
     Booking newBooking;
@@ -384,6 +514,9 @@ void bookTourCompany(BookingQueue* queue, TourCompany* company) {
 
     enqueue(queue, newBooking);
     printf("\nCongratulations! Your tour booking has been confirmed in %s.\n", newBooking.bookingDate);
+    
+    // Generate booking confirmation file
+    generateBookingFile(&newBooking);
 }
 
 // Book a hotel
@@ -433,6 +566,9 @@ void bookHotel(BookingQueue* queue, char* hotelName, char* countryName, float ra
 
     enqueue(queue, newBooking);
     printf("\nCongratulations! Your hotel booking has been confirmed.\n");
+    
+    // Generate booking confirmation file
+    generateBookingFile(&newBooking);
 }
 
 // Main menu function
